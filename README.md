@@ -17,6 +17,8 @@ Co-authored by Claude Fable 5
 
 </div>
 
+> **Fork note (burakyalcin10):** personal adaptation of [markfulton/claude-antigravity-agents](https://github.com/markfulton/claude-antigravity-agents). Changes: a token-saving delegation policy (consider agy before Claude sub-agents, also during plan execution), write jobs always in a separate git worktree, Turkish trigger phrases, and a Windows/Git Bash verification note. Installed via a directory junction so `git pull` updates the live skill.
+
 ---
 
 A single Claude Code **skill** — one markdown instruction file (`SKILL.md`) named `antigravity-agents`. Skills are capabilities [Claude Code](https://claude.com/claude-code) loads on demand. This one teaches it to hand off work to the [Google Antigravity CLI](https://antigravity.google/docs/cli/getting-started) (`agy`), an autonomous terminal coding agent powered by Gemini and other models.

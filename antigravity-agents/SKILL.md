@@ -1,6 +1,6 @@
 ---
 name: antigravity-agents
-description: Delegate coding, code review, analysis, and research jobs to Google Antigravity CLI (agy) sub-agents that run alongside your own work. Use this whenever the user asks to spin off, offload, or delegate a task to Antigravity, agy, Gemini, or an "external agent"; wants a second opinion or independent review from a different model; wants intensive repo work (audits, large refactors, research sweeps) run in the background while you keep working; or says things like "have Antigravity do it", "spin up a sub-agent for this", or "get more done in parallel". Also use it proactively when a task is a good fit for parallel delegation and the user has expressed a preference for using Antigravity workers.
+description: Delegate coding, code review, analysis, and research jobs to Google Antigravity CLI (agy) sub-agents that run alongside your own work. Use this whenever the user asks to spin off, offload, or delegate a task to Antigravity, agy, Gemini, or an "external agent"; wants a second opinion or independent review from a different model; wants intensive repo work (audits, large refactors, research sweeps) run in the background while you keep working; or says things like "have Antigravity do it", "spin up a sub-agent for this", or "get more done in parallel" (Turkish: "agy'ye pasla", "Antigravity'ye ver", "ikinci görüş", "arka planda çalıştır", "token tasarrufu"). Also use it proactively when a task is a good fit for parallel delegation — this user prefers Antigravity workers to save Claude tokens.
 ---
 
 # Antigravity CLI Sub-Agents
@@ -9,12 +9,21 @@ Google Antigravity CLI (`agy`) is an autonomous terminal coding agent (Gemini an
 
 Treat an agy job like a contractor you briefed over email: it only knows what's in the prompt and the directory you point it at, and its work is unverified until you check it.
 
+## Delegation policy (token saving)
+
+The user prefers delegating to agy to save Claude tokens, so consider it on your own — don't wait to be asked:
+
+- Think of agy **before** spawning a Claude sub-agent (`Agent` tool), not instead of judgment: heavy, mechanical, or separable work (audits, sweeps, bulk edits, boilerplate, second-opinion reviews) → agy; work that needs this conversation's context, design judgment, or back-and-forth with the user → keep it in Claude.
+- While executing a multi-step plan, check each task against this rule before doing it yourself. Delegating a fitting task doesn't need the user's approval; say in one line that you delegated it and what you verified.
+
 ## Resolving the binary
 
 After install, `agy` is normally on your `PATH`. If a tool-spawned shell can't find it (some shells don't inherit a freshly updated PATH), fall back to the full path:
 
 - **Windows:** `%LOCALAPPDATA%\agy\bin\agy.exe` (in Bash-style shells: `"$LOCALAPPDATA/agy/bin/agy.exe"`)
 - **macOS / Linux:** check `which agy`
+
+Verified on Windows 11 with agy 1.3.5 from Claude Code's Git Bash shell: `agy` is on `PATH`, `</dev/null` closes stdin correctly, and the preflight probe below returns in ~20s.
 
 **Critical: always close stdin.** `agy` blocks forever (0% CPU, no output, even in print mode) when stdin is an open pipe, which is exactly what non-interactive tool shells give it. Launch jobs with `</dev/null` appended (POSIX shells), or from PowerShell via `cmd /c '... < NUL'`. A "stalled" job with an empty log almost always means stdin was left open — kill it and relaunch with stdin closed.
 
@@ -38,7 +47,7 @@ An agy job and your own edits must never touch the same working tree at the same
 |---|---|---|
 | **Read-only** | code review, architecture analysis, security audit, research, "explain this codebase", doc summarization | Safe to run concurrently in the same repo. Add `--sandbox` and say "do not modify any files" in the prompt. |
 | **Write, different repo** | fix a bug in repo B while you work in repo A | Safe concurrently. Launch from repo B's root. |
-| **Write, same repo** | refactor, implement feature, fix tests | Never concurrent with your own edits. Either (a) create a `git worktree` on a new branch and point the job there, or (b) run it sequentially while you do no edits, then review the diff. |
+| **Write, same repo** | refactor, implement feature, fix tests | Always in a separate `git worktree` on a new branch — never the tree you or the user are working in, not even sequentially. Write jobs run with `--dangerously-skip-permissions`, so the worktree is the blast-radius limit. Not a git repo → don't delegate write jobs. |
 
 For write jobs, snapshot first (`git status --porcelain`, commit or stash anything precious) so the sub-agent's changes are cleanly diffable — and recoverable if it goes sideways.
 
